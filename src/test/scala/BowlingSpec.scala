@@ -1,10 +1,12 @@
 package geezeo.bowling
 
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.{FunSpec, Matchers, TryValues}
 
 import scala.util.{ Try, Success, Failure }
 
 class BowlingSpec extends FunSpec with Matchers {
+
+  import TryValues._
 
   describe("Scoring valid games") {
 
@@ -36,25 +38,58 @@ class BowlingSpec extends FunSpec with Matchers {
 
     import BowlingGame._
 
-    val InvalidGames = Map(
-      "-------------------"   -> GameTooShort,
-      "XXXXXXXXXX"            -> GameTooShort,
-      "/-------------------"  -> SpareTooEarly,
-      "55------------------"  -> TooManyPins,
-      "-X------------------"  -> StrikeTooLate,
-      "---------foo--------"  -> UnrecognizedThrow,
-      "---------------------" -> GameTooLong
-    )
+    val TooShort     = List("-------------------", "XXXXXXXXXX")
+    val TooEarly     = List("/-------------------")
+    val Pins         = List("55------------------")
+    val TooLate      = List("-X------------------")
+    val Unrecognized = List("---------foo--------")
+    val TooLong      = List("---------------------")
 
-    InvalidGames.foreach { case (game, error) =>
-      it (s"${ game } is invalid for reason: ${ error.getClass.getSimpleName }") {
-        val bowl = new BowlingGame(game)
+    TooShort.foreach { frame =>
+      it (s"${ frame } is invalid for reason: Game too short") {
+        val bowl = new BowlingGame(frame)
 
-        bowl.score match {
-          case Success(_)       => fail("Game should be invalid")
-          case Failure(`error`) => succeed
-          case Failure(err)     => fail(s"Game failed for reason ${ err.getClass.getSimpleName } instead")
-        }
+        bowl.score.failure.exception shouldBe a [GameTooShort]
+      }
+    }
+
+    TooEarly.foreach { frame =>
+      it (s"${ frame } is invalid for reason: Spare too early") {
+        val bowl = new BowlingGame(frame)
+
+        bowl.score.failure.exception shouldBe a [SpareTooEarly]
+      }
+    }
+
+    Pins.foreach { frame =>
+      it (s"${ frame } is invalid for reason: Too many pins") {
+        val bowl = new BowlingGame(frame)
+
+        bowl.score.failure.exception shouldBe a [TooManyPins]
+      }
+    }
+
+    TooLate.foreach { frame =>
+      it (s"${ frame } is invalid for reason: Strike too late") {
+        val bowl = new BowlingGame(frame)
+
+        bowl.score.failure.exception shouldBe a [StrikeTooLate]
+      }
+    }
+
+    Unrecognized.foreach { frame =>
+      it (s"${ frame } is invalid for reason: Unrecognized throw") {
+        val bowl = new BowlingGame(frame)
+
+        bowl.score.failure.exception shouldBe a [UnrecognizedThrow]
+      }
+    }
+
+    TooLong.foreach { frame =>
+      it (s"${ frame } is invalid for reason: Game too long") {
+        val bowl = new BowlingGame(frame)
+
+        bowl.score.failure.exception shouldBe a [GameTooLong]
       }
     }
   }
@@ -81,27 +116,49 @@ class BowlingSpec extends FunSpec with Matchers {
 
       import BowlingGame._
 
-      val InvalidFrames = Map(
-        "X4"  -> GameTooShort,
-        "444" -> GameTooLong,
-        "/44" -> SpareTooEarly,
-        "X/4" -> SpareTooEarly,
-        "4//" -> SpareTooEarly,
-        "X4X" -> StrikeTooLate,
-        "4X4" -> StrikeTooLate,
-        "99"  -> TooManyPins,
-        "X99" -> TooManyPins
-      )
+      val TooShort = List("X4")
+      val TooLong  = List("444")
+      val TooEarly = List("/44", "X/4", "4//")
+      val TooLate  = List("X4X", "4X4")
+      val Pins     = List("99", "X99")
 
-      InvalidFrames.foreach { case (game, error) =>
-        it (s"${ game } is an invalid tenth frame for reason: ${ error.getClass.getSimpleName }") {
-          val bowl = new BowlingGame("------------------" + game)
+      TooShort.foreach { case frame =>
+        it (s"${ frame } is an invalid tenth frame for reason: Game too short") {
+          val bowl = new BowlingGame("------------------" + frame)
 
-          bowl.score match {
-            case Success(_)       => fail("Frame should be invalid")
-            case Failure(`error`) => succeed
-            case Failure(err)     => fail(s"Frame failed for reason ${ err.getClass.getSimpleName } instead")
-          }
+          bowl.score.failure.exception shouldBe a [GameTooShort]
+        }
+      }
+
+      TooLong.foreach { case frame =>
+        it (s"${ frame } is an invalid tenth frame for reason: Game too long") {
+          val bowl = new BowlingGame("------------------" + frame)
+
+          bowl.score.failure.exception shouldBe a [GameTooLong]
+        }
+      }
+
+      TooEarly.foreach { case frame =>
+        it (s"${ frame } is an invalid tenth frame for reason: Spare too early") {
+          val bowl = new BowlingGame("------------------" + frame)
+
+          bowl.score.failure.exception shouldBe a [SpareTooEarly]
+        }
+      }
+
+      TooLate.foreach { case frame =>
+        it (s"${ frame } is an invalid tenth frame for reason: Spare too late") {
+          val bowl = new BowlingGame("------------------" + frame)
+
+          bowl.score.failure.exception shouldBe a [StrikeTooLate]
+        }
+      }
+
+      Pins.foreach { case frame =>
+        it (s"${ frame } is an invalid tenth frame for reason: Too many pins") {
+          val bowl = new BowlingGame("------------------" + frame)
+
+          bowl.score.failure.exception shouldBe a [TooManyPins]
         }
       }
 

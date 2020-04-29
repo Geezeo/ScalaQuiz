@@ -4,7 +4,7 @@ Scala Test for applying to Geezeo
 
 ## Instructions
 
-Implement the method `geezeo.bowling.BowlingGame.score: Try[Int]` so that all the tests pass.  Feel free to add whatever additional methods, classes, etc. that you find helpful.
+Implement the method `def geezeo.bowling.BowlingGame.score: Try[Int]` so that all the tests pass.  Feel free to add whatever additional methods, classes, etc. that you find helpful.
 
 Run the tests using `sbt test`.  There are 32 tests, all should pass.
 
